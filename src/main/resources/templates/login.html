@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Login - TaskHub</title>
+    <title>Login- TaskHub</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
@@ -21,7 +21,7 @@
         </div>
 
         <!-- Login Form -->
-        <form th:action="@{/api/auth/login}" th:object="${loginRequest}" method="post">
+        <form th:action="@{/api/auth/home}" th:object="${loginRequest}" method="post">
             <div>
                 <label for="username">Username:</label>
                 <input type="text" id="username" th:field="*{userName}" placeholder="Enter your username" required />

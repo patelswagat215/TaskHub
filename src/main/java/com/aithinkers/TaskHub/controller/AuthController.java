@@ -26,23 +26,13 @@ public class AuthController {
 
     private final TaskHubImpl service;
 
-    /**
-     * Displays the user registration form
-     * @param model Spring MVC model to add attributes
-     * @return register.html template
-     */
+  
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
         model.addAttribute("signupRequest", new SignUpRequest());
         return "register";
     }
 
-    /**
-     * Handles user registration form submission
-     * @param signUpRequest User registration data
-     * @param model Spring MVC model to add attributes
-     * @return register.html template with success/error message
-     */
     @PostMapping("/register")
     public String registerTheUser(@ModelAttribute SignUpRequest signUpRequest, Model model) {
         try {
@@ -56,30 +46,20 @@ public class AuthController {
         return "register";
     }
 
-    /**
-     * Displays the login form
-     * @param model Spring MVC model to add attributes
-     * @return login.html template
-     */
+
     @GetMapping("/login")
     public String showLoginForm(Model model) {
         model.addAttribute("loginRequest", new LoginRequest());
         return "login";
     }
 
-    /**
-     * Handles user login and generates JWT token
-     * @param loginRequest User login credentials
-     * @param model Spring MVC model to add attributes
-     * @return welcome.html template with JWT token or login.html with error
-     */
-    @PostMapping("/login")
+    @PostMapping("/home")
     public String loginTheUser(@ModelAttribute LoginRequest loginRequest, Model model) {
         try {
             // Authenticate user and generate JWT token
             LoginResponse response = service.authenticateTheUser(loginRequest);
             model.addAttribute("response", response);
-            return "welcome";
+            return "home";
         } catch (RuntimeException e) {
             model.addAttribute("error", "Invalid username or password");
             model.addAttribute("loginRequest", new LoginRequest());
@@ -93,32 +73,26 @@ public class AuthController {
      * @param principal Current authenticated user
      * @return welcome.html template
      */
-    @GetMapping("/welcome")
-    public String showWelcomePage(Model model, Principal principal) {
-        if (principal != null) {
-            // Get user details and create a response object
-            SignUpRequest userDetails = service.getUserDetailsForUpdate(principal.getName());
-            LoginResponse response = new LoginResponse(
-                userDetails.getName(),
-                "JWT token will be available after login",
-                java.util.Arrays.asList(userDetails.getRole()),
-                "Welcome back!"
-            );
-            model.addAttribute("response", response);
-        } else {
-            // If no principal, redirect to login
-            return "redirect:/api/auth/login";
-        }
-        return "welcome";
-    }
+//    @GetMapping("/welcome")
+//    public String showWelcomePage(Model model, Principal principal) {
+//        if (principal != null) {
+//            // Get user details and create a response object
+//            SignUpRequest userDetails = service.getUserDetailsForUpdate(principal.getName());
+//            LoginResponse response = new LoginResponse(
+//                userDetails.getName(),
+//                "JWT token will be available after login",
+//                java.util.Arrays.asList(userDetails.getRole()),
+//                "Welcome back!"
+//            );
+//            model.addAttribute("response", response);
+//        } else {
+//            // If no principal, redirect to login
+//            return "redirect:/api/auth/login";
+//        }
+//        return "welcome";
+//    }
 
-    /**
-     * Displays user profile for viewing and updating
-     * Requires JWT token in Authorization header
-     * @param model Spring MVC model to add attributes
-     * @param principal Current authenticated user
-     * @return viewandupdate.html template with user data
-     */
+
     @GetMapping("/update")
     public String updateTheProfile(Model model, Principal principal) {
         String username = principal.getName();
@@ -127,14 +101,7 @@ public class AuthController {
         return "viewandupdate";
     }
 
-    /**
-     * Handles profile update form submission
-     * Requires JWT token in Authorization header
-     * @param signUpRequest Updated user data
-     * @param model Spring MVC model to add attributes
-     * @param principal Current authenticated user
-     * @return viewandupdate.html template with updated data
-     */
+ 
     @PostMapping("/update")
     public String updateProfile(SignUpRequest signUpRequest, Model model, Principal principal) {
         

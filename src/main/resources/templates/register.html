@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>User Registration - TaskHub</title>
+    <title>User Registration- TaskHub</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
@@ -35,16 +35,6 @@
             <div>
                 <label for="password">Password:</label>
                 <input type="password" id="password" th:field="*{password}" placeholder="Create a strong password" required />
-            </div>
-
-            <div>
-                <label for="role">Role:</label>
-                <select id="role" th:field="*{role}" required>
-                    <option value="">Select your role</option>
-                    <option value="USER">User</option>
-                    <option value="ADMIN">Admin</option>
-                    <option value="MANAGER">Manager</option>
-                </select>
             </div>
 
             <div>

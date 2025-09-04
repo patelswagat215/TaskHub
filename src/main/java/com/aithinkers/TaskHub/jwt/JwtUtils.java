@@ -28,6 +28,7 @@ public class JwtUtils {
     @Value("${spring.app.jwtExpirationMs}")
     private int jwtExpirationMs;
     
+    //#2
     public String generateTokenFromUsername(UserDetails userDetails) {
         String username = userDetails.getUsername();
         return Jwts.builder()
@@ -37,7 +38,8 @@ public class JwtUtils {
                 .signWith(key())
                 .compact();
     }
-
+    
+    //#3
     private Key key() {
         try {
             return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
@@ -45,37 +47,40 @@ public class JwtUtils {
             return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         }
     }
- // Called from AuthenticationTokenFilter (Helper method)
+    
+    //#1
  	public String getJwtFromHeader(HttpServletRequest request) {
 
  		String bearerToken = request.getHeader("Authorization");
- 		//logger.debug("Authorization Header: {}", bearerToken);
-
  		if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
- 			return bearerToken.substring(7); // Remove Bearer prefix
+ 			return bearerToken.substring(7);
  		}
  		return null;
  	}
 
- 	// Called from AuthenticationTokenFilter (Helper method)
+ 	//#4
  	public String getUserNameFromJwtToken(String token) {
- 		return Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(token).getPayload().getSubject();
+ 		return Jwts
+ 				.parser()
+ 				.verifyWith((SecretKey) key())
+ 				.build().parseSignedClaims(token)
+ 				.getPayload().getSubject();
  	}
  	
- 	// Called from AuthenticationTokenFilter (Helper method)
+ 	//#5
  	public boolean validateJwtToken(String authToken) {
  		try {
  			System.out.println("Validated");
- 			Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(authToken);
+ 			Jwts
+ 			.parser()
+ 			.verifyWith((SecretKey) key())
+ 			.build()
+ 			.parseSignedClaims(authToken);
  			return true;
  		} catch (MalformedJwtException e) {
- 			//logger.error("Invalid JWT token: {}", e.getMessage());
  		} catch (ExpiredJwtException e) {
- 			//logger.error("JWT token is expired: {}", e.getMessage());
  		} catch (UnsupportedJwtException e) {
- 			//logger.error("JWT token is unsupported: {}", e.getMessage());
  		} catch (IllegalArgumentException e) {
- 			//logger.error("JWT claims string is empty: {}", e.getMessage());
  		}
  		return false;
  	}

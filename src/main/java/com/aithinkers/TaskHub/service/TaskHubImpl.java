@@ -44,25 +44,19 @@ public class TaskHubImpl implements TaskHubService {
 	 */
 	@Override
 	public String registerTheUser(SignUpRequest signUpRequest) {
-		// Check if user already exists
 		if (repo.findByName(signUpRequest.getName()).isPresent()) {
 			throw new RuntimeException("Username already exists: " + signUpRequest.getName());
 		}
-		
-		// Check if email already exists
 		if (repo.findByEmail(signUpRequest.getEmail()).isPresent()) {
 			throw new RuntimeException("Email already registered: " + signUpRequest.getEmail());
 		}
 		
-		// Create new user entity
 		User user = new User();
 		user.setName(signUpRequest.getName());
-		// Encode password for security
 		user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-		user.setRole(signUpRequest.getRole());
+		user.setRole("ROLE_USER");
 		user.setEmail(signUpRequest.getEmail());
 
-		// Save user to database
 		repo.save(user);
 
 		return "User " + user.getName() + " saved successfully";
@@ -121,7 +115,7 @@ public class TaskHubImpl implements TaskHubService {
 	    SignUpRequest signUpRequest = new SignUpRequest();
 	    signUpRequest.setName(user.getName());
 	    signUpRequest.setEmail(user.getEmail());
-	    signUpRequest.setRole(user.getRole());
+	    //signUpRequest.setRole(user.getRole());
 	    signUpRequest.setPassword(user.getPassword()); 
 
 	    return signUpRequest;
