@@ -1,16 +1,22 @@
 package com.aithinkers.TaskHub.controller;
 
 import java.security.Principal;
+import java.util.List;
+
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.aithinkers.TaskHub.dto.LoginRequest;
 import com.aithinkers.TaskHub.dto.LoginResponse;
 import com.aithinkers.TaskHub.dto.SignUpRequest;
+import com.aithinkers.TaskHub.entity.User;
 import com.aithinkers.TaskHub.service.TaskHubImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -111,4 +117,40 @@ public class AuthController {
         model.addAttribute("signUpRequest",signUpRequest);
         return "viewandupdate";
     }
+    
+    
+//Get all users
+    	    @GetMapping("/getallusers")
+    	    public String getAllUsers(Model model){
+    	    	
+    	    	List<User> users=service.getAllUsers();
+    	        model.addAttribute("users",users);
+    	        return "userlist";
+    	    }
+    	    
+    	    @GetMapping("/edit-role/{id}")
+    	    public String editUserRole(@PathVariable Integer id, Model model, @RequestParam(value = "jwt_token", required = false) String jwtToken) {
+    	        User user = service.getUserById(id);
+    	        if (user == null) {
+    	            return "redirect:/api/auth/getallusers?error=UserNotFound";
+    	        }
+    	        model.addAttribute("user", user);
+    	        model.addAttribute("jwt_token", jwtToken);
+    	        return "edit-user-role"; // create edit-user-role.html
+    	    }
+
+    	    @PostMapping("/update-role")
+    	    public String updateUserRole(@RequestParam Integer id, @RequestParam String role, @RequestParam(value = "jwt_token", required = false) String jwtToken) {
+    	        service.updateUserRole(id, role);
+    	        String suffix = jwtToken != null ? ("?jwt_token=" + jwtToken) : "";
+    	        return "redirect:/api/auth/getallusers" + suffix;
+    	    }
+
+    	    @GetMapping("/delete/{id}")
+    	    public String deleteUser(@PathVariable Integer id, @RequestParam(value = "jwt_token", required = false) String jwtToken) {
+    	        service.deleteUserById(id);
+    	        String suffix = jwtToken != null ? ("?jwt_token=" + jwtToken) : "";
+    	        return "redirect:/api/auth/getallusers" + suffix;
+    	    }
+
 }

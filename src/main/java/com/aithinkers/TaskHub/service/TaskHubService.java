@@ -16,5 +16,8 @@ public interface TaskHubService {
 	String updateUserProfile(String username, SignUpRequest signUpRequest);
 	String extractUsernameFromToken(String token);
 	List<User> getAllUsers();
+	User getUserById(Integer id);
+	String updateUserRole(Integer id, String role);
+	void deleteUserById(Integer id);
 
 }

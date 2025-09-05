@@ -2,25 +2,165 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>User Registration- TaskHub</title>
+    <title>User Registration - TaskHub</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* General Body and Container Styles */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #2c3e50; /* Deep charcoal background */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #34495e; /* Dark text color */
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        /* Header Styles */
+        h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        h3 {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #7f8c8d; /* Subdued subtitle color */
+            font-weight: 400;
+        }
+
+        /* Message Styles */
+        .message-container {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .message-success {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #2ecc71;
+        }
+        
+        .message-error {
+            background-color: #fce4e4;
+            color: #c0392b;
+            border: 1px solid #e74c3c;
+        }
+
+        /* Form and Input Fields */
+        form div {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #555;
+        }
+
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+            outline: none;
+        }
+
+        /* Submit Button */
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2ecc71; /* Green for "create account" action */
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+        }
+
+        button[type="submit"]:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        /* Login Redirect Link */
+        .login-redirect {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .login-redirect a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .login-redirect a:hover {
+            color: #2980b9;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h2>Create Your TaskHub Account</h2>
-        <h3>Join us today!</h3>
+        <h2>TaskHub</h2>
+        <h3>Create Your Account</h3>
 
-        <!-- Success Message -->
-        <div th:if="${message}" style="background-color: #e8f5e8; color: #2e7d32; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center;">
+        <div th:if="${message}" class="message-container message-success">
             <p th:text="${message}"></p>
         </div>
 
-        <!-- Error Message -->
-        <div th:if="${error}" style="background-color: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center;">
+        <div th:if="${error}" class="message-container message-error">
             <p th:text="${error}"></p>
         </div>
 
-        <!-- Registration Form -->
         <form th:action="@{/api/auth/register}" method="post" th:object="${signupRequest}">
             <div>
                 <label for="name">Full Name:</label>
@@ -42,9 +182,8 @@
             </div>
         </form>
 
-        <!-- Login Redirect -->
-        <div style="text-align: center; margin-top: 20px;">
-            <a th:href="@{/api/auth/login}" style="color: #3498db; text-decoration: none;">Already have an account? Login here</a>
+        <div class="login-redirect">
+            <a th:href="@{/api/auth/login}">Already have an account? Login here</a>
         </div>
     </div>
 </body>

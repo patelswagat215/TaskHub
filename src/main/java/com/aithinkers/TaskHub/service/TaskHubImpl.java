@@ -1,6 +1,7 @@
 package com.aithinkers.TaskHub.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -167,5 +168,27 @@ public class TaskHubImpl implements TaskHubService {
 	 */
 	public List<User> getAllUsers() {
 		return repo.findAll();
+	}
+
+	public User getUserById(Integer id) {
+		Optional<User> user=repo.findById(id);
+		return user.orElse(null);
+	}
+
+	@Override
+	public String updateUserRole(Integer id, String role) {
+		Optional<User> userOptional = repo.findById(id);
+		if (userOptional.isEmpty()) {
+			throw new RuntimeException("User not found");
+		}
+		User user = userOptional.get();
+		user.setRole(role);
+		repo.save(user);
+		return "Role updated";
+	}
+
+	@Override
+	public void deleteUserById(Integer id) {
+		repo.deleteById(id);
 	}
 }
