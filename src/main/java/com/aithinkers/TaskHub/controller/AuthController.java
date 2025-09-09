@@ -73,12 +73,6 @@ public class AuthController {
         }
     }
 
-    /**
-     * Displays the welcome page for authenticated users
-     * @param model Spring MVC model to add attributes
-     * @param principal Current authenticated user
-     * @return welcome.html template
-     */
 //    @GetMapping("/welcome")
 //    public String showWelcomePage(Model model, Principal principal) {
 //        if (principal != null) {
@@ -97,6 +91,24 @@ public class AuthController {
 //        }
 //        return "welcome";
 //    }
+    
+    @GetMapping("/home")
+    public String showHomePage(@RequestParam(value = "jwt_token", required = false) String jwtToken,
+                               Model model, Principal principal) {
+        if (principal != null) {
+            SignUpRequest userDetails = service.getUserDetailsForUpdate(principal.getName());
+            LoginResponse response = new LoginResponse(
+                userDetails.getName(),
+                jwtToken != null ? jwtToken : "No token provided",
+                java.util.Arrays.asList("ROLE_USER"),
+                "Welcome back!"
+            );
+            model.addAttribute("response", response);
+            return "home";
+        }
+        return "redirect:/api/auth/login";
+    }
+
 
 
     @GetMapping("/update")
