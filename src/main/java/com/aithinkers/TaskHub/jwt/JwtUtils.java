@@ -28,18 +28,17 @@ public class JwtUtils {
     @Value("${spring.app.jwtExpirationMs}")
     private int jwtExpirationMs;
     
-    //#2
-    public String generateTokenFromUsername(UserDetails userDetails) {
-        String username = userDetails.getUsername();
+    //->TaskHubImpl
+    public String generateToken(String username, Integer userId) {
         return Jwts.builder()
                 .subject(username)
+                .claim("uid", userId)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key())
                 .compact();
     }
     
-    //#3
     private Key key() {
         try {
             return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
@@ -58,7 +57,7 @@ public class JwtUtils {
  		return null;
  	}
 
- 	//#4
+ 	//#2
  	public String getUserNameFromJwtToken(String token) {
  		return Jwts
  				.parser()
@@ -66,8 +65,30 @@ public class JwtUtils {
  				.build().parseSignedClaims(token)
  				.getPayload().getSubject();
  	}
+
+	public Integer getUserIdFromJwtToken(String token) {
+		Object uid = Jwts
+				.parser()
+				.verifyWith((SecretKey) key())
+				.build().parseSignedClaims(token)
+				.getPayload().get("uid");
+		if (uid == null) {
+			return null;
+		}
+		if (uid instanceof Integer) {
+			return (Integer) uid;
+		}
+		if (uid instanceof Number) {
+			return ((Number) uid).intValue();
+		}
+		try {
+			return Integer.parseInt(uid.toString());
+		} catch (NumberFormatException ex) {
+			return null;
+		}
+	}
  	
- 	//#5
+ 	//#3
  	public boolean validateJwtToken(String authToken) {
  		try {
  			System.out.println("Validated");

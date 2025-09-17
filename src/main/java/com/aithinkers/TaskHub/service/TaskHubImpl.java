@@ -87,8 +87,10 @@ public class TaskHubImpl implements TaskHubService {
 	    SecurityContextHolder.getContext().setAuthentication(authentication);
 	    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 	    
-	    // Generate JWT token for the authenticated user
-	    String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
+	    // Generate JWT token for the authenticated user with user id claim
+	    User dbUser = repo.findByName(userDetails.getUsername())
+	    		.orElseThrow(() -> new RuntimeException("User not found: " + userDetails.getUsername()));
+	    String jwtToken = jwtUtils.generateToken(userDetails.getUsername(), dbUser.getId());
 	    
 	    // Extract user roles
 	    List<String> roles = userDetails.getAuthorities()
@@ -160,6 +162,49 @@ public class TaskHubImpl implements TaskHubService {
 			return jwtUtils.getUserNameFromJwtToken(token);
 		}
 		return null;
+	}
+
+	public Integer extractUserIdFromToken(String token) {
+		if (token != null && jwtUtils.validateJwtToken(token)) {
+			return jwtUtils.getUserIdFromJwtToken(token);
+		}
+		return null;
+	}
+
+	public SignUpRequest getUserDetailsForUpdate(Integer userId) {
+		User user = repo.findById(userId)
+				.orElseThrow(() -> new RuntimeException("User not found: " + userId));
+		SignUpRequest signUpRequest = new SignUpRequest();
+		signUpRequest.setName(user.getName());
+		signUpRequest.setEmail(user.getEmail());
+		signUpRequest.setPassword(user.getPassword());
+		return signUpRequest;
+	}
+
+	public java.util.List<String> getUserRolesById(Integer userId) {
+		User user = repo.findById(userId)
+				.orElseThrow(() -> new RuntimeException("User not found: " + userId));
+		String roleField = user.getRole();
+		if (roleField == null || roleField.isBlank()) {
+			return java.util.Collections.emptyList();
+		}
+		return java.util.Arrays.stream(roleField.split(","))
+				.map(String::trim)
+				.filter(r -> !r.isEmpty())
+				.collect(java.util.stream.Collectors.toList());
+	}
+
+	public List<String> getUserRolesByUsername(String username) {
+		User user = repo.findByName(username)
+				.orElseThrow(() -> new RuntimeException("User not found: " + username));
+		String roleField = user.getRole();
+		if (roleField == null || roleField.isBlank()) {
+			return java.util.Collections.emptyList();
+		}
+		return java.util.Arrays.stream(roleField.split(","))
+				.map(String::trim)
+				.filter(r -> !r.isEmpty())
+				.collect(java.util.stream.Collectors.toList());
 	}
 
 	/**

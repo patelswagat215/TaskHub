@@ -15,26 +15,26 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * This filter is executed once per request and is responsible for handling JWT-based authentication.
- * It:
- * - Extracts the JWT token from the request header or parameters
- * - Validates the token
- * - Loads the user details
- * - Sets the Spring Security context with the authenticated user
- * 
- * This ensures that all secured endpoints can recognize the user making the request.
- */
+import com.aithinkers.TaskHub.entity.User;
+import com.aithinkers.TaskHub.repository.RegisterUserRepo;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
+    private final RegisterUserRepo registerUserRepo;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
 
-    public AuthenticationTokenFilter(JwtUtils jwtUtils, UserDetailsService userDetailsService) {
+    public AuthenticationTokenFilter(JwtUtils jwtUtils, UserDetailsService userDetailsService, RegisterUserRepo registerUserRepo) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.registerUserRepo = registerUserRepo;
     }
 
     @Override
@@ -43,52 +43,65 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         logger.debug("AuthenticationTokenFilter triggered for URI: {}", request.getRequestURI());
 
         try {
-            // Extract the JWT token from the Authorization header or request parameters
+            
             String jwt = parseJwt(request);
-
-            // Validate the token and set authentication context
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-
-                // Extract username from token
-                String username = jwtUtils.getUserNameFromJwtToken(jwt);
-
-                // Load user details from the configured UserDetailsService
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-                // Create an authentication token with the user's details and authorities
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-                logger.debug("Authenticated user '{}', roles: {}", username, userDetails.getAuthorities());
-
-                // Set additional request details and update the security context
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                Integer userId = null;
+                try { userId = jwtUtils.getUserIdFromJwtToken(jwt); } catch (Exception ignore) {}
+                if (userId != null) {
+                    User user = registerUserRepo.findById(userId).orElse(null);
+                    if (user != null) {
+                        Collection<GrantedAuthority> authorities = parseAuthorities(user.getRole());
+                        UserDetails userDetails = org.springframework.security.core.userdetails.User
+                                .withUsername(user.getName())
+                                .password(user.getPassword())
+                                .authorities(authorities)
+                                .accountLocked(false)
+                                .accountExpired(false)
+                                .credentialsExpired(false)
+                                .disabled(false)
+                                .build();
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        logger.debug("Authenticated user by ID '{}', roles: {}", userId, userDetails.getAuthorities());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
+                } else {
+                	String username = jwtUtils.getUserNameFromJwtToken(jwt);
+                	UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                	UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    logger.debug("Authenticated user by username '{}', roles: {}", username, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
 
         } catch (Exception e) {
             logger.error("Failed to set user authentication in security context: {}", e.getMessage());
         }
-
-        // Continue the filter chain
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Helper method to extract the JWT token from the request header or parameters.
-     * 
-     * @param request the incoming HTTP request
-     * @return the JWT token string, or null if not present
-     */
     private String parseJwt(HttpServletRequest request) {
-        // First try to get token from Authorization header
-        String jwt = jwtUtils.getJwtFromHeader(request);
         
-        // If not found in header, try to get from request parameters
+        String jwt = jwtUtils.getJwtFromHeader(request);
         if (jwt == null) {
             jwt = request.getParameter("jwt_token");
         }
         
         logger.debug("Extracted JWT: {}", jwt != null ? "Token found" : "No token found");
         return jwt;
+    }
+
+    private Collection<GrantedAuthority> parseAuthorities(String roleField) {
+        if (roleField == null || roleField.isBlank()) {
+            return Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
+        }
+        return Arrays.stream(roleField.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r)
+            .map(SimpleGrantedAuthority::new)
+            .collect(Collectors.toList());
     }
 }

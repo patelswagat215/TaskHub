@@ -1,4 +1,4 @@
-// Function to submit form with JWT token in headers
+// Function to submit form with JWT token as URL parameter
 function submitForm() {
     let token = localStorage.getItem('jwt');
     if (!token) {
@@ -9,11 +9,13 @@ function submitForm() {
 
     let form = document.getElementById('profileForm');
     let formData = new FormData(form);
+    
+    // Add JWT token to form data
+    formData.append('jwt_token', token);
 
     fetch('/api/auth/update', {
         method: 'POST',
         headers: {
-            'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams(formData)

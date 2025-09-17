@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 import com.aithinkers.TaskHub.jwt.AuthenticationTokenFilter;
 import com.aithinkers.TaskHub.jwt.JwtUtils;
+import com.aithinkers.TaskHub.repository.RegisterUserRepo;
 
 @Configuration
 @EnableWebSecurity
@@ -25,6 +26,7 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final JwtUtils jwtUtils;
+    private final RegisterUserRepo registerUserRepo;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -46,7 +48,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationTokenFilter authenticationJwtTokenFilter() {
-        return new AuthenticationTokenFilter(jwtUtils, userDetailsService);
+        return new AuthenticationTokenFilter(jwtUtils, userDetailsService, registerUserRepo);
     }
 
     @Bean
@@ -56,9 +58,9 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/api/auth/register", "/api/auth/login","/api/auth/home", "/css/**", "/js/**", "/images/**")
+                .requestMatchers("/", "/api/auth/register", "/api/auth/login","/api/auth/home", "/api/auth/update", "/css/**", "/js/**", "/images/**")
                 .permitAll()
-                .requestMatchers("/api/auth/welcome", "/api/auth/update")
+                .requestMatchers("/api/auth/welcome")
                 .authenticated()
                 .anyRequest()
                 .authenticated())
